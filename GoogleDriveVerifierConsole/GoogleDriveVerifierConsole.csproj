@@ -3,10 +3,23 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Authors>Blair Allen</Authors>
+    <Product>Google Drive Verifier (Console)</Product>
+    <Description>A Windows console application, built on the .NET Core framework, that assists in verifying the MD5 hashes of local files against the MD5 hashes calculated by Google Drive.</Description>
+    <Copyright>Copyright 2015-2019 Blair Allen</Copyright>
+    <RepositoryUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryType>Git</RepositoryType>
+    <StartupObject>GoogleDriveVerifier.Console.Program</StartupObject>
+    <AssemblyName>GoogleDriveVerifier.Console</AssemblyName>
+    <RootNamespace>GoogleDriveVerifier.Console</RootNamespace>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.39.0.1581" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
   </ItemGroup>
 
 </Project>
