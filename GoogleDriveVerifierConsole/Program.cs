@@ -36,6 +36,14 @@
 		/// </summary>
 		FileNotFoundInDrive = 4,
 		/// <summary>
+		///		The specified file path for the client secrets configuration JSON file is not valid.
+		/// </summary>
+		ConfigFileNotFound = 5,
+		/// <summary>
+		///		The client secrets configuration JSON file is of invalid format and could not be read.
+		/// </summary>
+		ConfigFileInvalid = 6,
+		/// <summary>
 		///		An unknown error occurred.
 		/// </summary>
 		Unknown = int.MaxValue
@@ -43,6 +51,7 @@
 
 	public class Program
 	{
+		private static string _clientIDFilePath = "client_id.json";
 		private static ConsoleColor _defaultConsoleBackgroundColor;
 		private static ConsoleColor _defaultConsoleForegroundColor;
 
@@ -100,6 +109,14 @@
 				}
 			}
 
+			// Determine if the client secrets JSON file exists
+			if (!File.Exists(_clientIDFilePath))
+			{
+				WriteError("The client secrets configuration JSON file (" + _clientIDFilePath + ") could not be found in the current working " +
+					"directory. Unable to authenticate with Google Drive.");
+				return (int)ExitCode.ConfigFileNotFound;
+			}
+
 			string inputFileMD5Checksum = null;
 			string inputFileName = null;
 			bool isFileFound = false;
@@ -151,18 +168,31 @@
 				// We now have all parts needed to connect to the Google Drive API, check for the file's existence, and compare the MD5 checksums for
 				// verification
 
-				// Configure the ClientSecrets object for Google Drive
-				// TODO: Make this an option the app configures as a different option argument, and then the secrets data is loaded from a secret
-				//       key cache
-				Google.Apis.Auth.OAuth2.ClientSecrets clientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets()
+				// Configure the client secrets object for the Google Drive API
+				Google.Apis.Auth.OAuth2.GoogleClientSecrets googleClientSecrets;
+				using (FileStream clientIDFileStream = new FileStream(_clientIDFilePath, FileMode.Open, FileAccess.Read))
 				{
-					ClientId = "",
-					ClientSecret = ""
-				};
+					try
+					{
+						// Load the secrets data from the JSON file
+						googleClientSecrets = Google.Apis.Auth.OAuth2.GoogleClientSecrets.Load(clientIDFileStream);
+					}
+					catch
+					{
+						googleClientSecrets = null;
+					}
+
+					if (googleClientSecrets == null)
+					{
+						WriteError("Unable to read client secrets from the configuration JSON file.");
+						return (int)ExitCode.ConfigFileInvalid;
+					}
+				}
 
 				// Configure the UserCredential object using the ClientSecrets object
 				Google.Apis.Auth.OAuth2.UserCredential userCredential = await Google.Apis.Auth.OAuth2.GoogleWebAuthorizationBroker.AuthorizeAsync(
-					clientSecrets, new[] { Google.Apis.Drive.v3.DriveService.Scope.DriveMetadataReadonly }, args[0], CancellationToken.None, null);
+					googleClientSecrets.Secrets, new[] { Google.Apis.Drive.v3.DriveService.Scope.DriveMetadataReadonly }, args[0],
+					CancellationToken.None, null);
 
 				// Create a DriveService object to handle the connection to the Google Drive account
 				using (Google.Apis.Drive.v3.DriveService driveService = new Google.Apis.Drive.v3.DriveService(
