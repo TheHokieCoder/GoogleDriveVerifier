@@ -12,6 +12,8 @@
 	///	</remarks>
 	internal static class ApplicationInfo
 	{
+		private const string APPLICATION_NAME = "Google Drive Verifier";
+
 		/// <summary>
 		///		The copright set for the application.
 		/// </summary>
@@ -31,17 +33,7 @@
 		{
 			get
 			{
-				object[] attributes = Assembly.GetCallingAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
-				if (attributes.Length > 0)
-				{
-					AssemblyTitleAttribute titleAttribute = attributes[0] as AssemblyTitleAttribute;
-					if (titleAttribute != null && titleAttribute.Title.Length > 0)
-					{
-						return titleAttribute.Title;
-					}
-				}
-
-				return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+				return APPLICATION_NAME;
 			}
 		}
 

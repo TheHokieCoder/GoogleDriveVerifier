@@ -45,7 +45,7 @@
 	{
 		private static ConsoleColor _defaultConsoleBackgroundColor;
 		private static ConsoleColor _defaultConsoleForegroundColor;
-		
+
 		private static string GetHelpText()
 		{
 			// Generate the string containing all of the help information for the user
