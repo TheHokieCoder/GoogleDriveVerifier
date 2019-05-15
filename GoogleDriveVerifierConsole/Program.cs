@@ -51,9 +51,13 @@
 
 	public class Program
 	{
+		private const string APPLICATION_SETTINGS_FILE_PATH = "appsettings.json";
 		private static string _clientIDFilePath = "client_id.json";
+		private static IConfiguration _configuration;
 		private static ConsoleColor _defaultConsoleBackgroundColor;
 		private static ConsoleColor _defaultConsoleForegroundColor;
+		private static bool _isSoundOn = true;
+		private const string SOUNDS_ON_KEY_NAME = "soundsOn";
 
 		private static string GetHelpText()
 		{
@@ -86,6 +90,18 @@
 
 			// Set the default exit code in the case that an unknown/unhandled error occurs
 			Environment.ExitCode = (int)ExitCode.Unknown;
+
+			// Attempt to load the application configuration settings from appsettings.json
+			ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+			configurationBuilder.AddJsonFile(APPLICATION_SETTINGS_FILE_PATH, true, false);
+			_configuration = configurationBuilder.Build();
+
+			// Retrieve the sound on/off setting from the configuration file, if set
+			if (!Boolean.TryParse(_configuration[SOUNDS_ON_KEY_NAME], out _isSoundOn))
+			{
+				// Default to sounds being on
+				_isSoundOn = true;
+			}
 
 			if (args.Length == 0)
 			{
@@ -218,6 +234,11 @@
 					{
 						Console.WriteLine();
 						WriteError("The file was not found in Google Drive.");
+						// Indicate that the program has finished processing by "ringing" the system bell, if sounds are on
+						if (_isSoundOn)
+						{
+							Console.Write(BELL);
+						}
 						return (int)ExitCode.FileNotFoundInDrive;
 					}
 					else
@@ -243,8 +264,8 @@
 							Console.WriteLine("}");
 						}
 
-						Console.WriteLine();
-						Console.Write(BELL);
+						// Indicate that the program has finished processing by "ringing" the system bell, if sounds are on
+						Console.WriteLine(_isSoundOn ? BELL : (char)0);
 						return (int)ExitCode.Success;
 					}
 				}
