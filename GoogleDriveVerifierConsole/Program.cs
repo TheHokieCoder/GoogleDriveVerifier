@@ -45,7 +45,7 @@
 	{
 		private static ConsoleColor _defaultConsoleBackgroundColor;
 		private static ConsoleColor _defaultConsoleForegroundColor;
-
+		
 		private static string GetHelpText()
 		{
 			// Generate the string containing all of the help information for the user
@@ -53,19 +53,20 @@
 				ApplicationInfo.Title + " v" + ApplicationInfo.Version + Environment.NewLine +
 				ApplicationInfo.Copyright + Environment.NewLine +
 				Environment.NewLine +
-				"Usage: " + AppDomain.CurrentDomain.FriendlyName + " [OPTION] NICKNAME FILE MD5HASH" + Environment.NewLine +
+				"Usage: " + AppDomain.CurrentDomain.FriendlyName + " [OPTION] NICKNAME FILE MD5CHECKSUM" + Environment.NewLine +
 				Environment.NewLine +
 				"OPTION switches:" + Environment.NewLine +
 				"    -h  Display this help information" + Environment.NewLine +
 				Environment.NewLine +
 				"Arguments:" + Environment.NewLine +
-				"    NICKNAME  A nickname for the Google Drive account (e.g. 'Work', 'Personal'," + Environment.NewLine +
-				"              'Secret'). If this is the first time the Google account has been" + Environment.NewLine +
-				"              used, it will be given this nickname, otherwise the cached account" + Environment.NewLine +
-				"              credentials will be used." + Environment.NewLine +
-				"    FILE      The name of the file to verify the MD5 hash" + Environment.NewLine +
-				"    MD5HASH   The known MD5 hash to verify against the MD5 calculated by Google" + Environment.NewLine +
-				"              Drive. If this is omitted, it will be calculated on the fly." + Environment.NewLine;
+				"    NICKNAME      A nickname for the Google Drive account (e.g. 'Work'," + Environment.NewLine +
+				"                  'Personal', 'Secret'). If this is the first time the Google" + Environment.NewLine +
+				"                  account has been used, it will be given this nickname," + Environment.NewLine +
+				"                  otherwise the cached account credentials will be used." + Environment.NewLine +
+				"    FILE          The name of the file to verify the MD5 checksum" + Environment.NewLine +
+				"    MD5CHECKSUM   The known MD5 checksum to verify against that calculated by" + Environment.NewLine +
+				"                  Google Drive. If this is omitted, it will be calculated on the" + Environment.NewLine +
+				"                  fly.";
 		}
 
 		public static async Task<int> Main(string[] args)
@@ -99,7 +100,7 @@
 				}
 			}
 
-			string inputFileHash = null;
+			string inputFileMD5Checksum = null;
 			string inputFileName = null;
 			bool isFileFound = false;
 
@@ -120,13 +121,14 @@
 				inputFileName = Path.GetFileName(args[1]);
 				if (isFileFound = File.Exists(args[1]))
 				{
-					// Since the MD5HASH argument was not specified, calculate the MD5 hash 
-					Console.Write("Computing MD5 hash for '" + inputFileName + "'...");
+					// Since the MD5CHECKSUM argument was not specified, calculate the MD5 checksum
+					Console.Write("Computing MD5 checksum for '" + inputFileName + "'...");
 					using (Stream inputFileStream = File.OpenRead(args[1]))
 					{
-						inputFileHash = inputFileStream.ComputeHash<MD5CryptoServiceProvider>();
+						inputFileMD5Checksum = inputFileStream.ComputeHash<MD5CryptoServiceProvider>();
 					}
 					Console.WriteLine("complete!");
+					Console.WriteLine("Local MD5 checksum: " + inputFileMD5Checksum);
 				}
 				else
 				{
@@ -138,15 +140,15 @@
 
 			if (args.Length < 4)
 			{
-				// If only 2 arguments were specified, the MD5 hash was calculated above, already. If 3 arguments were specified, grab the specified
-				// MD5 hash from the arguments
+				// If only 2 arguments were specified, the MD5 checksum was calculated above, already. If 3 arguments were specified, grab the
+				// specified MD5 checksum from the arguments
 				if (args.Length == 3)
 				{
-					inputFileHash = args[2];
+					inputFileMD5Checksum = args[2];
 					inputFileName = Path.GetFileName(args[1]);
 				}
 
-				// We now have all parts needed to connect to the Google Drive, check for the file's existence, and compare the MD5 hashes for
+				// We now have all parts needed to connect to the Google Drive API, check for the file's existence, and compare the MD5 checksums for
 				// verification
 
 				// Configure the ClientSecrets object for Google Drive
@@ -154,8 +156,8 @@
 				//       key cache
 				Google.Apis.Auth.OAuth2.ClientSecrets clientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets()
 				{
-					ClientId = "42693917941-9mnp6ehi45mk1tv48alvbiu6jj51lhum.apps.googleusercontent.com",
-					ClientSecret = "DQAJBMpvELcPaH88AcAYYyLi"
+					ClientId = "",
+					ClientSecret = ""
 				};
 
 				// Configure the UserCredential object using the ClientSecrets object
@@ -202,7 +204,7 @@
 							Console.WriteLine("    size: " + file.Size.ToFileSizeString(false, true) + " (" + file.Size + " bytes)");
 							Console.WriteLine("    md5Checksum: " + file.Md5Checksum);
 							Console.Write("    MD5 Checksum Verified: ");
-							md5ChecksumVerified = (String.Compare(file.Md5Checksum, inputFileHash, true) == 0);
+							md5ChecksumVerified = (String.Compare(file.Md5Checksum, inputFileMD5Checksum, true) == 0);
 							Console.BackgroundColor = md5ChecksumVerified ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
 							Console.ForegroundColor = ConsoleColor.Gray;
 							Console.WriteLine(md5ChecksumVerified.ToString());
