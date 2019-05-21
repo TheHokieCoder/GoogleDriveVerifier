@@ -1,4 +1,0 @@
-﻿namespace GoogleDriveVerifier.Console.Configuration
-{
-	
-}
