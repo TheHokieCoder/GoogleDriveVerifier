@@ -1,6 +1,5 @@
 ﻿namespace GoogleDriveVerifier.Console
 {
-	using System.IO;
 	using System.Reflection;
 
 
