@@ -5,6 +5,9 @@
 	using System.Text;
 
 
+	/// <summary>
+	///		Extension methods for <see cref="Stream"/> objects.
+	/// </summary>
 	internal static class StreamExtensions
 	{
 		/// <summary>
@@ -26,17 +29,21 @@
 		public static string ComputeHash<T>(this Stream objectStream) where T : HashAlgorithm, new()
 		{
 			StringBuilder hashString = new StringBuilder();
+			// Record the current stream position so that it can be reset after calculating the cryptographic hash
 			long currentPosition = objectStream.Position;
 
 			using (T hasher = new T())
 			{
+				// Compute the bytes that make up the cryptographic hash
 				byte[] hashBytes = hasher.ComputeHash(objectStream);
+				// Convert each byte into a two-character hexademical string and appead it to the complete hash string
 				foreach (byte bite in hashBytes)
 				{
 					hashString.Append(bite.ToString("x2"));
 				}
 			}
 
+			// Reset the stream position back to where it was when the method was called
 			objectStream.Seek(currentPosition, SeekOrigin.Begin);
 
 			return hashString.ToString();
