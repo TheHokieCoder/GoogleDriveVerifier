@@ -12,7 +12,7 @@
     <PackageLicenseUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>Git</RepositoryType>
     <StartupObject>GoogleDriveVerifier.Console.Program</StartupObject>
-    <AssemblyName>GoogleDriveVerifier.Console</AssemblyName>
+    <AssemblyName>GoogleDriveVerifier</AssemblyName>
     <RootNamespace>GoogleDriveVerifier.Console</RootNamespace>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
