@@ -46,6 +46,10 @@
 		/// </summary>
 		ClientSecretsInvalid = 7,
 		/// <summary>
+		///		Querying the Google Drive account for a file failed.
+		/// </summary>
+		DriveQueryFailed = 8,
+		/// <summary>
 		///		An unknown error occurred.
 		/// </summary>
 		Unknown = int.MaxValue
@@ -254,11 +258,23 @@
 					Console.Write("Searching Google Drive for the specified file...");
 
 					// Execute the list request and save the list of matching files
-					Google.Apis.Drive.v3.Data.FileList fileList = await listRequest.ExecuteAsync();
+					Google.Apis.Drive.v3.Data.FileList fileList = null;
+					try
+					{
+						fileList = await listRequest.ExecuteAsync();
+					}
+					catch (Exception exception)
+					{
+						// Obtaining a list of files based on the search query did not succeed, so write out an error message and exit app
+						Console.WriteLine("failed!");
+						WriteError("Querying the Google Drive account for the specified file failed." + Environment.NewLine + "Exception message: " +
+							exception.Message);
+						return (int)ExitCode.DriveQueryFailed;
+					}
 
 					if (fileList.Files.Count == 0)
 					{
-						Console.WriteLine();
+						Console.WriteLine("not found!");
 						WriteError("The file was not found in Google Drive.");
 						// Indicate that the program has finished processing by "ringing" the system bell, if sounds are on
 						if (_isSoundOn)
