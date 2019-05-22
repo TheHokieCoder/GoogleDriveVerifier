@@ -205,7 +205,7 @@
 				// verification
 
 				// Configure the client secrets object for the Google Drive API
-				Google.Apis.Auth.OAuth2.GoogleClientSecrets googleClientSecrets;
+				Google.Apis.Auth.OAuth2.GoogleClientSecrets googleClientSecrets = null;
 				using (FileStream clientIDFileStream = new FileStream(_clientIDFilePath, FileMode.Open, FileAccess.Read))
 				{
 					try
@@ -213,15 +213,11 @@
 						// Load the secrets data from the JSON file
 						googleClientSecrets = Google.Apis.Auth.OAuth2.GoogleClientSecrets.Load(clientIDFileStream);
 					}
-					catch
+					catch (Exception exception)
 					{
-						googleClientSecrets = null;
-					}
-
-					if (googleClientSecrets == null)
-					{
-						// The secrets data could not be loaded, so the Google Drive API cannot be used. Write out an error message and exit app.
-						WriteError("Unable to read client secrets from the configuration JSON file.");
+						// The client secrets data could not be loaded, so the API cannot be used. Write out an error message and exit app.
+						WriteError("Unable to read client secrets from the configuration JSON file." + Environment.NewLine + "Exception message: " +
+							exception.Message);
 						return (int)ExitCode.ConfigFileInvalid;
 					}
 				}
@@ -236,7 +232,7 @@
 				catch (Exception exception)
 				{
 					// The client secrets data could not be successfully used to authorize with the API, so write out an error message and exit app
-					WriteError("Authorization of client secrets failed." + Environment.NewLine + "Exception Message: " + exception.Message);
+					WriteError("Authorization of client secrets failed." + Environment.NewLine + "Exception message: " + exception.Message);
 					return (int)ExitCode.ClientSecretsInvalid;
 				}
 
