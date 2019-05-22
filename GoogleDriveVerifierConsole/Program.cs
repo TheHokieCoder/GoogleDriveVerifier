@@ -1,7 +1,5 @@
 ﻿namespace GoogleDriveVerifier.Console
 {
-	using GoogleDriveVerifier.Console.Configuration;
-	using GoogleDriveVerifier.Console;
 	using Microsoft.Extensions.Configuration;
 	using System;
 	using System.IO;
@@ -221,8 +219,8 @@
 					// Create a ListRequest object to query the Drive service and receive a list of matching items
 					Google.Apis.Drive.v3.FilesResource.ListRequest listRequest = new Google.Apis.Drive.v3.FilesResource.ListRequest(driveService)
 					{
-						Fields = "files(createdTime,size,id,md5Checksum,originalFilename)",
-						Q = "name='" + inputFileName + "'"
+						Fields = "files(createdTime,id,md5Checksum,name,originalFilename,size,version)",
+						Q = "name='" + inputFileName + "' and trashed=false"
 					};
 
 					Console.Write("Searching Google Drive for the specified file...");
@@ -249,18 +247,35 @@
 						{
 							Console.WriteLine("File");
 							Console.WriteLine("{");
-							Console.WriteLine("    id: " + file.Id);
-							Console.WriteLine("    createdTime: " + file.CreatedTime);
-							Console.WriteLine("    originalFilename: " + file.OriginalFilename);
-							Console.WriteLine("    size: " + file.Size.ToFileSizeString(false, true) + " (" + file.Size + " bytes)");
-							Console.WriteLine("    md5Checksum: " + file.Md5Checksum);
-							Console.Write("    MD5 Checksum Verified: ");
-							md5ChecksumVerified = (String.Compare(file.Md5Checksum, inputFileMD5Checksum, true) == 0);
-							Console.BackgroundColor = md5ChecksumVerified ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
-							Console.ForegroundColor = ConsoleColor.Gray;
-							Console.WriteLine(md5ChecksumVerified.ToString());
-							Console.BackgroundColor = _defaultConsoleBackgroundColor;
-							Console.ForegroundColor = _defaultConsoleForegroundColor;
+							Console.WriteLine("    name: " + file.Name);
+
+							Google.Apis.Drive.v3.RevisionsResource.ListRequest revisionsListRequest = new 
+								Google.Apis.Drive.v3.RevisionsResource.ListRequest(driveService, file.Id)
+							{
+								Fields = "revisions(id,md5Checksum,modifiedTime,originalFilename,size)"
+
+							};
+							Google.Apis.Drive.v3.Data.RevisionList revisionsList = await revisionsListRequest.ExecuteAsync();
+
+							foreach (Google.Apis.Drive.v3.Data.Revision revision in revisionsList.Revisions)
+							{
+								Console.WriteLine("    Revision");
+								Console.WriteLine("    {");
+								Console.WriteLine("        id: " + revision.Id);
+								Console.WriteLine("        modifieddTime: " + revision.ModifiedTime);
+								Console.WriteLine("        originalFilename: " + revision.OriginalFilename);
+								Console.WriteLine("        size: " + revision.Size.ToFileSizeString(false, true) + " (" + revision.Size + " bytes)");
+								Console.WriteLine("        md5Checksum: " + revision.Md5Checksum);
+								Console.Write("        MD5 Checksum Verified: ");
+								md5ChecksumVerified = (String.Compare(revision.Md5Checksum, inputFileMD5Checksum, true) == 0);
+								Console.BackgroundColor = md5ChecksumVerified ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
+								Console.ForegroundColor = ConsoleColor.Gray;
+								Console.WriteLine(md5ChecksumVerified.ToString());
+								Console.BackgroundColor = _defaultConsoleBackgroundColor;
+								Console.ForegroundColor = _defaultConsoleForegroundColor;
+								Console.WriteLine("    }");
+							}
+
 							Console.WriteLine("}");
 						}
 
