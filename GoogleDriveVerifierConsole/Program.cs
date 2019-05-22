@@ -61,12 +61,14 @@
 	public class Program
 	{
 		private const string APPLICATION_SETTINGS_FILE_PATH = "appsettings.json";
-		private static string _clientIDFilePath = "client_id.json";
+		private static string _clientIDFileName = ".googledriveverifier.json";
 		private static IConfiguration _configuration;
+		private static string _currentWorkingDirectory = Environment.CurrentDirectory;
 		private static ConsoleColor _defaultConsoleBackgroundColor;
 		private static ConsoleColor _defaultConsoleForegroundColor;
 		private static bool _isSoundOn = true;
 		private const string SOUNDS_ON_KEY_NAME = "soundsOn";
+		private static string _userProfileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
 		/// <summary>
 		///		Builds a string containing helpful instructions for the proper usage of the application.
@@ -150,11 +152,17 @@
 			}
 
 			// Determine if the client secrets JSON file exists
-			if (!File.Exists(_clientIDFilePath))
+			string clientIDFilePath = _currentWorkingDirectory + Path.DirectorySeparatorChar + _clientIDFileName;
+			if (!File.Exists(clientIDFilePath))
 			{
-				WriteError("The client secrets configuration JSON file (" + _clientIDFilePath + ") could not be found in the current working " +
-					"directory. Unable to authenticate with Google Drive.");
-				return (int)ExitCode.ConfigFileNotFound;
+				clientIDFilePath = _userProfileDirectory + Path.DirectorySeparatorChar + _clientIDFileName;
+				if (!File.Exists(clientIDFilePath))
+				{
+					WriteError("The client secrets configuration JSON file could not be found, therefore unable to authenticate with Google Drive. " +
+						"The following paths were checked:" + Environment.NewLine + "    " + _currentWorkingDirectory + Path.DirectorySeparatorChar +
+						_clientIDFileName + Environment.NewLine + "    " + clientIDFilePath);
+					return (int)ExitCode.ConfigFileNotFound;
+				}
 			}
 
 			string inputFileMD5Checksum = null;
@@ -210,7 +218,7 @@
 
 				// Configure the client secrets object for the Google Drive API
 				Google.Apis.Auth.OAuth2.GoogleClientSecrets googleClientSecrets = null;
-				using (FileStream clientIDFileStream = new FileStream(_clientIDFilePath, FileMode.Open, FileAccess.Read))
+				using (FileStream clientIDFileStream = new FileStream(clientIDFilePath, FileMode.Open, FileAccess.Read))
 				{
 					try
 					{
