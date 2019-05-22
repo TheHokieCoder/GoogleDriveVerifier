@@ -47,6 +47,9 @@
 		Unknown = int.MaxValue
 	}
 
+	/// <summary>
+	///		Class containing the main entry point for the application.
+	/// </summary>
 	public class Program
 	{
 		private const string APPLICATION_SETTINGS_FILE_PATH = "appsettings.json";
@@ -57,6 +60,12 @@
 		private static bool _isSoundOn = true;
 		private const string SOUNDS_ON_KEY_NAME = "soundsOn";
 
+		/// <summary>
+		///		Builds a string containing helpful instructions for the proper usage of the application.
+		/// </summary>
+		/// <returns>
+		///		A string that can be written to the console
+		/// </returns>
 		private static string GetHelpText()
 		{
 			// Generate the string containing all of the help information for the user
@@ -80,6 +89,15 @@
 				"                  fly.";
 		}
 
+		/// <summary>
+		///		Entry point for the application.
+		/// </summary>
+		/// <param name="args">
+		///		An array of strings containing each argument specified at execution
+		/// </param>
+		/// <returns>
+		///		An integer indicating the result of execution, which maps to the <see cref="ExitCode"/> enumeration
+		/// </returns>
 		public static async Task<int> Main(string[] args)
 		{
 			const char BELL = (char)7;
@@ -198,6 +216,7 @@
 
 					if (googleClientSecrets == null)
 					{
+						// The secrets data could not be loaded, so the Google Drive API cannot be used. Write out an error message and exit app.
 						WriteError("Unable to read client secrets from the configuration JSON file.");
 						return (int)ExitCode.ConfigFileInvalid;
 					}
@@ -243,12 +262,15 @@
 					{
 						Console.WriteLine("found!");
 						bool md5ChecksumVerified;
+
+						// At least one matching file was found, so iterate over each result
 						foreach (Google.Apis.Drive.v3.Data.File file in fileList.Files)
 						{
 							Console.WriteLine("File");
 							Console.WriteLine("{");
 							Console.WriteLine("    name: " + file.Name);
 
+							// Retrieve all revisions of the file
 							Google.Apis.Drive.v3.RevisionsResource.ListRequest revisionsListRequest = new 
 								Google.Apis.Drive.v3.RevisionsResource.ListRequest(driveService, file.Id)
 							{
@@ -257,8 +279,10 @@
 							};
 							Google.Apis.Drive.v3.Data.RevisionList revisionsList = await revisionsListRequest.ExecuteAsync();
 
+							// Iterate over each revision of the file
 							foreach (Google.Apis.Drive.v3.Data.Revision revision in revisionsList.Revisions)
 							{
+								// Write out details about the current revision
 								Console.WriteLine("    Revision");
 								Console.WriteLine("    {");
 								Console.WriteLine("        id: " + revision.Id);
@@ -267,6 +291,7 @@
 								Console.WriteLine("        size: " + revision.Size.ToFileSizeString(false, true) + " (" + revision.Size + " bytes)");
 								Console.WriteLine("        md5Checksum: " + revision.Md5Checksum);
 								Console.Write("        MD5 Checksum Verified: ");
+								// Determine if the local MD5 checksum matches that calculated by Google Drive
 								md5ChecksumVerified = (String.Compare(revision.Md5Checksum, inputFileMD5Checksum, true) == 0);
 								Console.BackgroundColor = md5ChecksumVerified ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
 								Console.ForegroundColor = ConsoleColor.Gray;
@@ -287,11 +312,18 @@
 			}
 			else
 			{
+				// Too many arguments were specified, so write out an error message and exit app
 				WriteError("Invalid number of arguments specified. Please use the '-h' option for correct usage.");
 				return (int)ExitCode.InvalidArgumentCount;
 			}
 		}
 
+		/// <summary>
+		///		Writes an error message with specific formatting to the console.
+		/// </summary>
+		/// <param name="errorMessage">
+		///		The error message to be written
+		/// </param>
 		private static void WriteError(string errorMessage)
 		{
 			Console.WriteLine();
@@ -303,6 +335,12 @@
 			Console.WriteLine(": " + errorMessage);
 		}
 
+		/// <summary>
+		///		Writes a warning message with specific formatting to the console.
+		/// </summary>
+		/// <param name="warningMessage">
+		///		The warning message to be written
+		/// </param>
 		private static void WriteWarning(string warningMessage)
 		{
 			Console.WriteLine();
