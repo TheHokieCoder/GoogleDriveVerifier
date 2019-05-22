@@ -248,7 +248,7 @@
 						HttpClientInitializer = userCredential
 					}))
 				{
-					// Create a ListRequest object to query the Drive service and receive a list of matching items
+					// Create a ListRequest object to query the Drive service and receive a list of matching files
 					Google.Apis.Drive.v3.FilesResource.ListRequest listRequest = new Google.Apis.Drive.v3.FilesResource.ListRequest(driveService)
 					{
 						Fields = "files(createdTime,id,md5Checksum,name,originalFilename,size,version)",
@@ -295,14 +295,28 @@
 							Console.WriteLine("{");
 							Console.WriteLine("    name: " + file.Name);
 
-							// Retrieve all revisions of the file
+							// Create a ListRequest object to query the Drive service and receive a list of revisions of the particular file
 							Google.Apis.Drive.v3.RevisionsResource.ListRequest revisionsListRequest = new 
 								Google.Apis.Drive.v3.RevisionsResource.ListRequest(driveService, file.Id)
 							{
 								Fields = "revisions(id,md5Checksum,modifiedTime,originalFilename,size)"
-
 							};
-							Google.Apis.Drive.v3.Data.RevisionList revisionsList = await revisionsListRequest.ExecuteAsync();
+
+							// Execute the list request and save the list of file revisions
+							Google.Apis.Drive.v3.Data.RevisionList revisionsList = null;
+							try
+							{
+								revisionsList = await revisionsListRequest.ExecuteAsync();
+							}
+							catch (Exception exception)
+							{
+								// Obtaining a list of file revisions did not succeed, so write out an error message and break from the current
+								// iteration of matching files
+								WriteError("Querying the Google Drive account for revisions of the specified file failed." + Environment.NewLine +
+									"Exception message: " + exception.Message);
+								Console.WriteLine("}");
+								break;
+							}
 
 							// Iterate over each revision of the file
 							foreach (Google.Apis.Drive.v3.Data.Revision revision in revisionsList.Revisions)
