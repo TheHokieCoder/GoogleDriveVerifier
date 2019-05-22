@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <Authors>Blair Allen</Authors>
     <Product>Google Drive Verifier (Console)</Product>
-    <Description>A Windows console application, built on the .NET Core framework, that assists in verifying the MD5 hashes of local files against the MD5 hashes calculated by Google Drive.</Description>
+    <Description>A console application, built on the .NET Core framework, that assists in verifying the MD5 checksums of local files against those calculated by Google Drive.</Description>
     <Copyright>Copyright 2015-2019 Blair Allen</Copyright>
     <RepositoryUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier</RepositoryUrl>
     <PackageProjectUrl>https://github.com/TheHokieCoder/GoogleDriveVerifier</PackageProjectUrl>
