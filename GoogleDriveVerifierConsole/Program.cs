@@ -42,6 +42,10 @@
 		/// </summary>
 		ConfigFileInvalid = 6,
 		/// <summary>
+		///		The client secrets are not valid or authorized for the Google Drive API.
+		/// </summary>
+		ClientSecretsInvalid = 7,
+		/// <summary>
 		///		An unknown error occurred.
 		/// </summary>
 		Unknown = int.MaxValue
@@ -223,9 +227,18 @@
 				}
 
 				// Configure the UserCredential object using the ClientSecrets object
-				Google.Apis.Auth.OAuth2.UserCredential userCredential = await Google.Apis.Auth.OAuth2.GoogleWebAuthorizationBroker.AuthorizeAsync(
-					googleClientSecrets.Secrets, new[] { Google.Apis.Drive.v3.DriveService.Scope.DriveMetadataReadonly }, args[0],
-					CancellationToken.None, null);
+				Google.Apis.Auth.OAuth2.UserCredential userCredential = null;
+				try
+				{
+					userCredential = await Google.Apis.Auth.OAuth2.GoogleWebAuthorizationBroker.AuthorizeAsync(googleClientSecrets.Secrets,
+						new[] { Google.Apis.Drive.v3.DriveService.Scope.DriveMetadataReadonly }, args[0], CancellationToken.None, null);
+				}
+				catch (Exception exception)
+				{
+					// The client secrets data could not be successfully used to authorize with the API, so write out an error message and exit app
+					WriteError("Authorization of client secrets failed." + Environment.NewLine + "Exception Message: " + exception.Message);
+					return (int)ExitCode.ClientSecretsInvalid;
+				}
 
 				// Create a DriveService object to handle the connection to the Google Drive account
 				using (Google.Apis.Drive.v3.DriveService driveService = new Google.Apis.Drive.v3.DriveService(
